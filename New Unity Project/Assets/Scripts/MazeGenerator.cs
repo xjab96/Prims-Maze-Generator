@@ -5,51 +5,14 @@ using UnityEngine;
 public class MazePiece
 {
     public Vector3 position;
-    public bool up, left, right, down;
+    public bool[] directions;
 
-    public MazePiece(Vector3 position, bool left, bool up, bool right, bool down) 
+    public MazePiece(Vector3 position, bool left, bool up, bool right, bool down)
     {
-        this.up = up;
-        this.left = left;
-        this.down = down;
-        this.right = right;
+        directions = new bool[4]{ left, up, right, down };
         this.position = position;
     }
 
-    public void RemoveWall(int direction)
-    {
-        switch(direction)
-        {
-            case 0:
-                left = false;
-                break;
-
-            case 1:
-                up = false;
-                break;
-
-            case 2:
-                right = false;
-                break;
-
-            case 3:
-                down = false;
-                break;
-
-            default:
-                //Debug.Log("no wall was removed");
-                break;
-        }
-    }
-
-    public string ToString()
-    {
-        return "The piece is placed at " + position.ToString() +
-            "\nLeft connection is " + left.ToString() +
-            "\nTop connection is " + up.ToString() +
-            "\nRight connection is " + right.ToString() +
-            "\nDown connection is " + down.ToString();
-    }
 }
 
 public class MazeGenerator : MonoBehaviour
@@ -62,7 +25,7 @@ public class MazeGenerator : MonoBehaviour
 
     private List<MazePiece> mazePieces = new List<MazePiece>();
 
-    GameObject WallPrefab;
+    public GameObject wallPrefab;
 
     private void Start()
     {
@@ -71,45 +34,81 @@ public class MazeGenerator : MonoBehaviour
     void InitializeMaze()
     {
         int k = 0;
+        Debug.Log(mazeHeight);
         for(int i = 0; i < mazeHeight; i++)
         {
             for(int j = 0; j < mazeWidth; j++)
             {
                 mazePieces.Add(new MazePiece(new Vector3(j, 0, i), true, true, true, true));
                 //If it has a wall above it or to the side of it then don't place a wall
-                if (k - mazeWidth < 0)
-                {
-                    mazePieces[k].up = false;
-                }
-                if(mazePieces[k].position.x != 0)
-                {
-                    mazePieces[k].left = false;
-                }
-                k++;
+                //if (k - mazeWidth > 0)
+                //{
+                //    mazePieces[k].directions[1] = false;
+                //}
+                //if(mazePieces[k].position.x != 0)
+                //{
+                //    mazePieces[k].directions[0] = false;
+                //}
+                //k++;
             }
         }
         //for (int i = 0; i < mazePieces.Count; i++)
         //{
-        //    Debug.Log("indx = " + i + " pos = " + mazePieces[i].position);
+        //    for(int j = 0; j< mazePieces[i].directions.Length; j++)
+        //    Debug.Log("Bools = " + mazePieces[i].directions[j]);
         //}
         SpawnMazePieces();
     }
 
     void SpawnMazePieces()
     {
-        for(int i = 0; i < mazePieces.Count; i++)
+        for (int i = 0; i < mazePieces.Count; i++)
         {
             MazePiece curr = new MazePiece(new Vector3(0,0), false, false, false, false);
             curr = mazePieces[i];
-            curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * mazePieceHeight));
+            curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * -mazePieceHeight));
+
+            Quaternion wallRotation = new Quaternion();
+            float widthOffset = mazePieceWidth / 2;
+            float heightOffset = mazePieceHeight / 2;
+
+            for (int directionIdx = 0; directionIdx < 4; directionIdx++)
+            {
+                if(mazePieces[i].directions[directionIdx] == true)
+                {
+                    switch(directionIdx)
+                    {
+                        case 0://left
+                            wallRotation.eulerAngles = new Vector3(0, 0, 0);
+                            Debug.Log("left pos " + curr.position);
+                            Instantiate(wallPrefab, new Vector3(curr.position.x - widthOffset, curr.position.y, curr.position.z), wallRotation);
+                            break;
+
+                        case 1:
+                            wallRotation.eulerAngles = new Vector3(0, 90, 0);
+                            Debug.Log("up pos " + curr.position);
+                            Instantiate(wallPrefab, new Vector3(curr.position.x, curr.position.y, curr.position.z + heightOffset), wallRotation);
+                            break;
+
+                        case 2:
+                            wallRotation.eulerAngles = new Vector3(0, 0, 0);
+                            Debug.Log("right pos " + curr.position);
+                            Instantiate(wallPrefab, new Vector3(curr.position.x + widthOffset, curr.position.y, curr.position.z), wallRotation);
+                            break;
+
+                        case 3:
+                            Debug.Log("Bottom pos " + curr.position);
+                            wallRotation.eulerAngles = new Vector3(0, 90, 0);
+                            Instantiate(wallPrefab, new Vector3(curr.position.x, curr.position.y, curr.position.z - heightOffset), wallRotation);
+                            Debug.Log("Bottom pos new pos " + curr.position);
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+            }
         }
     }
-
-    bool CheckDirections()
-    {
-        //check if index is will be null
-        //check if
-        return false;
-    }
-
 }
