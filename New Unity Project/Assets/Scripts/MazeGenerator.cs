@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class MazePiece
 {
-    public Vector2 position;
+    public Vector3 position;
     public bool up, left, right, down;
 
-    public MazePiece(Vector2 position, bool left, bool up, bool right, bool down) 
+    public MazePiece(Vector3 position, bool left, bool up, bool right, bool down) 
     {
         this.up = up;
         this.left = left;
@@ -54,5 +54,62 @@ public class MazePiece
 
 public class MazeGenerator : MonoBehaviour
 {
-  
+    public int mazeWidth = 10;
+    public int mazeHeight = 10;
+
+    public int mazePieceWidth = 5;
+    public int mazePieceHeight = 5;
+
+    private List<MazePiece> mazePieces = new List<MazePiece>();
+
+    GameObject WallPrefab;
+
+    private void Start()
+    {
+        InitializeMaze();
+    }
+    void InitializeMaze()
+    {
+        int k = 0;
+        for(int i = 0; i < mazeHeight; i++)
+        {
+            for(int j = 0; j < mazeWidth; j++)
+            {
+                mazePieces.Add(new MazePiece(new Vector3(j, 0, i), true, true, true, true));
+                //If it has a wall above it or to the side of it then don't place a wall
+                if (k - mazeWidth < 0)
+                {
+                    mazePieces[k].up = false;
+                }
+                if(mazePieces[k].position.x != 0)
+                {
+                    mazePieces[k].left = false;
+                }
+                k++;
+            }
+        }
+        //for (int i = 0; i < mazePieces.Count; i++)
+        //{
+        //    Debug.Log("indx = " + i + " pos = " + mazePieces[i].position);
+        //}
+        SpawnMazePieces();
+    }
+
+    void SpawnMazePieces()
+    {
+        for(int i = 0; i < mazePieces.Count; i++)
+        {
+            MazePiece curr = new MazePiece(new Vector3(0,0), false, false, false, false);
+            curr = mazePieces[i];
+            curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * mazePieceHeight));
+        }
+    }
+
+    bool CheckDirections()
+    {
+        //check if index is will be null
+        //check if
+        return false;
+    }
+
 }
