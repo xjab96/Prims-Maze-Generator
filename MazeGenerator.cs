@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class MazePiece
 {
     public Vector3 position;
@@ -12,7 +11,6 @@ public class MazePiece
         directions = new bool[4] { left, up, right, down };
         this.position = position;
     }
-
 }
 
 public class MazeGenerator : MonoBehaviour
@@ -24,6 +22,7 @@ public class MazeGenerator : MonoBehaviour
     public float mazePieceHeight = 5;
 
     private List<MazePiece> mazePieces = new List<MazePiece>();
+    private List<MazePiece> visitedMazePieces2 = new List<MazePiece>();
 
     //Lists of indexes. They store the value of the index 
     private List<int> unusedMazePieces = new List<int>();
@@ -44,10 +43,12 @@ public class MazeGenerator : MonoBehaviour
             for (int j = 0; j < mazeWidth; j++)
             {
                 mazePieces.Add(new MazePiece(new Vector3(j, 0, i), true, true, true, true));
-                unusedMazePieces.Add((mazePieces.Count - 1)); //makes the list increment by 1
+                unusedMazePieces.Add((mazePieces.Count - 1));
             }
         }
     }
+
+    //just pass the maze piece to the function directly
 
     void BuildPaths()
     {
@@ -61,6 +62,7 @@ public class MazeGenerator : MonoBehaviour
         {
             //Pick a random room thats been visited -- 
             int randomIdx = visitedMazePieces[Random.Range(0, visitedMazePieces.Count)];
+            //Remove random infinity possibility by setting up a list of directions
             List<int> validDirections = new List<int>();
             for (int i = 0; i < 4; i++)
             {
@@ -68,7 +70,7 @@ public class MazeGenerator : MonoBehaviour
             }
             CheckDirections(randomIdx, validDirections);
         }
-        Debug.Log("beaten the awful while loop");
+        visitedMazePieces.Clear();
     }
 
     private int CheckDirections(int idx, List<int> validDirections)
@@ -85,10 +87,6 @@ public class MazeGenerator : MonoBehaviour
         }
         else
         {
-            foreach (int o in validDirections)
-            {
-                Debug.Log(o);
-            }
             int direction = validDirections[Random.Range(0, validDirections.Count)];
             switch (direction)
             {
@@ -109,12 +107,12 @@ public class MazeGenerator : MonoBehaviour
                     break;
 
                 case 1: //up
-                    if (idx - mazeWidth >= 0 && mazePieces[idx - mazeWidth].position.x == mazePieces[idx].position.x && unusedMazePieces.Contains(idx - mazeWidth))
+                    if (idx + mazeWidth <= ((mazeWidth * mazeHeight) - 1) && unusedMazePieces.Contains(idx + mazeWidth))
                     {
                         mazePieces[idx].directions[direction] = false;
-                        mazePieces[idx - mazeWidth].directions[3] = false;
-                        visitedMazePieces.Add(idx - mazeWidth);
-                        unusedMazePieces.Remove(idx - mazeWidth);
+                        mazePieces[idx + mazeWidth].directions[3] = false;
+                        visitedMazePieces.Add(idx + mazeWidth);
+                        unusedMazePieces.Remove(idx + mazeWidth);
                     }
                     else
                     {
@@ -124,7 +122,7 @@ public class MazeGenerator : MonoBehaviour
                     break;
 
                 case 2: //right
-                    if (idx + 1 <= (mazeWidth * mazeHeight) - 1 && mazePieces[idx + 1].position.z == mazePieces[idx].position.z && unusedMazePieces.Contains(idx + 1))
+                    if (idx + 1 <= ((mazeWidth * mazeHeight) - 1) && mazePieces[idx + 1].position.z == mazePieces[idx].position.z && unusedMazePieces.Contains(idx + 1))
                     {
                         mazePieces[idx].directions[direction] = false;
                         mazePieces[idx + 1].directions[1] = false;
@@ -139,12 +137,12 @@ public class MazeGenerator : MonoBehaviour
                     break;
 
                 case 3: //down
-                    if (idx + mazeWidth <= (mazeWidth * mazeHeight) - 1 && mazePieces[idx + mazeWidth].position.x == mazePieces[idx].position.x && unusedMazePieces.Contains(idx + mazeWidth))
+                    if (idx - mazeWidth >= 0 && unusedMazePieces.Contains(idx - mazeWidth))
                     {
                         mazePieces[idx].directions[direction] = false;
-                        mazePieces[idx + mazeWidth].directions[1] = false;
-                        visitedMazePieces.Add(idx + mazeWidth);
-                        unusedMazePieces.Remove(idx + mazeWidth);
+                        mazePieces[idx - mazeWidth].directions[1] = false;
+                        visitedMazePieces.Add(idx - mazeWidth);
+                        unusedMazePieces.Remove(idx - mazeWidth);
                     }
                     else
                     {
@@ -172,17 +170,16 @@ public class MazeGenerator : MonoBehaviour
             MazePiece curr = new MazePiece(new Vector3(0, 0), false, false, false, false);
 
             //If it has a wall above it or to the side of it then don't place a wall
-            if (i - mazeWidth > 0)
-            {
-                mazePieces[i].directions[1] = false;
-            }
-            if (mazePieces[i].position.x != 0)
-            {
-                mazePieces[i].directions[0] = false;
-            }
-
+            //if (i + mazeWidth <= ((mazeWidth * mazeHeight) - 1) && mazePieces[i + mazeWidth].directions[3])
+            //{
+            //    mazePieces[i].directions[1] = false;
+            //}
+            //if (i - 1 >= 0 && mazePieces[i].position.z == mazePieces[i - 1].position.z && mazePieces[i - 1].directions[2])
+            //{
+            //    mazePieces[i].directions[0] = false;
+            //}
             curr = mazePieces[i];
-            curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * -mazePieceHeight));
+            curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * mazePieceHeight));
 
             for (int directionIdx = 0; directionIdx < 4; directionIdx++)
             {
