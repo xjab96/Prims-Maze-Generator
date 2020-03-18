@@ -25,8 +25,8 @@ public class MazeGenerator : MonoBehaviour
     private List<MazePiece> visitedMazePieces2 = new List<MazePiece>();
 
     //Lists of indexes. They store the value of the index 
-    private List<int> unusedMazePieces = new List<int>();
-    private List<int> visitedMazePieces = new List<int>();
+    private List<MazePiece> notVistiedMazePieces;
+    private List<MazePiece> visitedMazePieces = new List<MazePiece>();
 
     public GameObject wallPrefab;
 
@@ -43,118 +43,142 @@ public class MazeGenerator : MonoBehaviour
             for (int j = 0; j < mazeWidth; j++)
             {
                 mazePieces.Add(new MazePiece(new Vector3(j, 0, i), true, true, true, true));
-                unusedMazePieces.Add((mazePieces.Count - 1));
             }
         }
+        notVistiedMazePieces = mazePieces;
     }
 
     //just pass the maze piece to the function directly
+    //return both maze pieces after checking direction
 
     void BuildPaths()
     {
         if (visitedMazePieces.Count == 0)
         {
-            int randomIdx = Random.Range(0, unusedMazePieces.Count);
-            visitedMazePieces.Add(unusedMazePieces[randomIdx]);
-            unusedMazePieces.RemoveAt(randomIdx);
+            MazePiece randomPiece = notVistiedMazePieces[Random.Range(0, notVistiedMazePieces.Count)];
+            visitedMazePieces.Add(randomPiece);
+            notVistiedMazePieces.Remove(randomPiece);
         }
-        while (unusedMazePieces.Count > 0)
+        while (notVistiedMazePieces.Count > 0)
         {
             //Pick a random room thats been visited -- 
-            int randomIdx = visitedMazePieces[Random.Range(0, visitedMazePieces.Count)];
+            MazePiece randomPiece = notVistiedMazePieces[Random.Range(0, visitedMazePieces.Count)];
+            ref MazePiece test = randomPiece;
             //Remove random infinity possibility by setting up a list of directions
             List<int> validDirections = new List<int>();
             for (int i = 0; i < 4; i++)
             {
                 validDirections.Add(i);
             }
-            CheckDirections(randomIdx, validDirections);
+            CheckDirections(randomPiece, validDirections);
         }
         visitedMazePieces.Clear();
     }
 
-    private int CheckDirections(int idx, List<int> validDirections)
+    private MazePiece CheckDirections(MazePiece currentPiece, List<int> validDirections)
     {
 
         if (validDirections.Count == 0)
         {
-            if ((mazePieces[idx].directions[0] ? 1 : 0) + (mazePieces[idx].directions[1] ? 1 : 0) + (mazePieces[idx].directions[2] ? 1 : 0) + (mazePieces[idx].directions[3] ? 1 : 0) == 3)
+            if ((currentPiece.directions[0] ? 1 : 0)
+                + (currentPiece.directions[1] ? 1 : 0)
+                + (currentPiece.directions[2] ? 1 : 0)
+                + (currentPiece.directions[3] ? 1 : 0) == 3)
             {
                 //Detected dead ends. Item spawn code can go here?
             }
-            visitedMazePieces.Remove(idx); //Removing it because it can no longer be used
-            return -1;
+            visitedMazePieces.Remove(currentPiece); //Removing it because it can no longer be used
+            return currentPiece;
         }
         else
         {
+            //finds the index so we can find adjacent
+            int idx = mazePieces.FindIndex(x => x == currentPiece);
             int direction = validDirections[Random.Range(0, validDirections.Count)];
             switch (direction)
             {
                 //switch detects if idx is valid, then checks if its on the same z axis(same row) then makes sure the piece hasnt already been visited
                 case 0: //left
-                    if (idx - 1 >= 0 && mazePieces[idx - 1].position.z == mazePieces[idx].position.z && unusedMazePieces.Contains(idx - 1))
+
+                    if (idx - 1 >= 0)
                     {
-                        mazePieces[idx].directions[direction] = false;
-                        mazePieces[idx - 1].directions[2] = false;
-                        visitedMazePieces.Add(idx - 1);
-                        unusedMazePieces.Remove(idx - 1);
-                    }
-                    else
-                    {
-                        validDirections.Remove(direction);
-                        return CheckDirections(idx, validDirections);
+                        MazePiece searchPiece = mazePieces[idx - 1];
+                        if (searchPiece.position.z == currentPiece.position.z && notVistiedMazePieces.Contains(searchPiece))
+                        {
+                            currentPiece.directions[direction] = false;
+                            searchPiece.directions[2] = false;
+                            visitedMazePieces.Add(searchPiece);
+                            notVistiedMazePieces.Remove(searchPiece);
+                        }
+                        else
+                        {
+                            validDirections.Remove(direction);
+                            return CheckDirections(currentPiece, validDirections);
+                        }
                     }
                     break;
 
                 case 1: //up
-                    if (idx + mazeWidth <= ((mazeWidth * mazeHeight) - 1) && unusedMazePieces.Contains(idx + mazeWidth))
+                    if (idx + mazeWidth <= ((mazeWidth * mazeHeight) - 1))
                     {
-                        mazePieces[idx].directions[direction] = false;
-                        mazePieces[idx + mazeWidth].directions[3] = false;
-                        visitedMazePieces.Add(idx + mazeWidth);
-                        unusedMazePieces.Remove(idx + mazeWidth);
-                    }
-                    else
-                    {
-                        validDirections.Remove(direction);
-                        return CheckDirections(idx, validDirections);
+                        MazePiece searchPiece = mazePieces[idx + mazeWidth];
+                        if (notVistiedMazePieces.Contains(searchPiece))
+                        {
+                            currentPiece.directions[direction] = false;
+                            searchPiece.directions[3] = false;
+                            visitedMazePieces.Add(searchPiece);
+                            notVistiedMazePieces.Remove(searchPiece);
+                        }
+                        else
+                        {
+                            validDirections.Remove(direction);
+                            return CheckDirections(currentPiece, validDirections);
+                        }
                     }
                     break;
 
                 case 2: //right
-                    if (idx + 1 <= ((mazeWidth * mazeHeight) - 1) && mazePieces[idx + 1].position.z == mazePieces[idx].position.z && unusedMazePieces.Contains(idx + 1))
+                    if (idx + 1 <= ((mazeWidth * mazeHeight) - 1))
                     {
-                        mazePieces[idx].directions[direction] = false;
-                        mazePieces[idx + 1].directions[1] = false;
-                        visitedMazePieces.Add(idx + 1);
-                        unusedMazePieces.Remove(idx + 1);
-                    }
-                    else
-                    {
-                        validDirections.Remove(direction);
-                        return CheckDirections(idx, validDirections);
+                        MazePiece searchPiece = mazePieces[idx + 1];
+                        if ( searchPiece.position.z == currentPiece.position.z && notVistiedMazePieces.Contains(searchPiece))
+                        {
+                            currentPiece.directions[direction] = false;
+                            searchPiece.directions[1] = false;
+                            visitedMazePieces.Add(searchPiece);
+                            notVistiedMazePieces.Remove(searchPiece);
+                        }
+                        else
+                        {
+                            validDirections.Remove(direction);
+                            return CheckDirections(currentPiece, validDirections);
+                        }
                     }
                     break;
 
                 case 3: //down
-                    if (idx - mazeWidth >= 0 && unusedMazePieces.Contains(idx - mazeWidth))
+                    if (idx - mazeWidth >= 0)
                     {
-                        mazePieces[idx].directions[direction] = false;
-                        mazePieces[idx - mazeWidth].directions[1] = false;
-                        visitedMazePieces.Add(idx - mazeWidth);
-                        unusedMazePieces.Remove(idx - mazeWidth);
-                    }
-                    else
-                    {
-                        validDirections.Remove(direction);
-                        return CheckDirections(idx, validDirections);
+                        MazePiece searchPiece = mazePieces[idx - mazeWidth];
+                        if (notVistiedMazePieces.Contains(searchPiece))
+                        {
+                            currentPiece.directions[direction] = false;
+                            searchPiece.directions[1] = false;
+                            visitedMazePieces.Add(searchPiece);
+                            notVistiedMazePieces.Remove(searchPiece);
+                        }
+                        else
+                        {
+                            validDirections.Remove(direction);
+                            return CheckDirections(currentPiece, validDirections);
+                        }
                     }
                     break;
 
                 default:
                     break;
             }
-            return direction;
+            return currentPiece;
         }
     }
 
