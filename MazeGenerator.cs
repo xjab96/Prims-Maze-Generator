@@ -22,7 +22,6 @@ public class MazeGenerator : MonoBehaviour
     public float mazePieceHeight = 5;
 
     private List<MazePiece> mazePieces = new List<MazePiece>();
-    private List<MazePiece> visitedMazePieces2 = new List<MazePiece>();
 
     //Lists of indexes. They store the value of the index 
     private List<MazePiece> notVistiedMazePieces;
@@ -61,9 +60,9 @@ public class MazeGenerator : MonoBehaviour
         }
         while (notVistiedMazePieces.Count > 0)
         {
+            Debug.Log(notVistiedMazePieces.Count);
             //Pick a random room thats been visited -- 
             MazePiece randomPiece = notVistiedMazePieces[Random.Range(0, visitedMazePieces.Count)];
-            ref MazePiece test = randomPiece;
             //Remove random infinity possibility by setting up a list of directions
             List<int> validDirections = new List<int>();
             for (int i = 0; i < 4; i++)
@@ -75,25 +74,25 @@ public class MazeGenerator : MonoBehaviour
         visitedMazePieces.Clear();
     }
 
-    private MazePiece CheckDirections(MazePiece currentPiece, List<int> validDirections)
+    private MazePiece CheckDirections(MazePiece chosenPiece, List<int> validDirections)
     {
 
         if (validDirections.Count == 0)
         {
-            if ((currentPiece.directions[0] ? 1 : 0)
-                + (currentPiece.directions[1] ? 1 : 0)
-                + (currentPiece.directions[2] ? 1 : 0)
-                + (currentPiece.directions[3] ? 1 : 0) == 3)
+            if ((chosenPiece.directions[0] ? 1 : 0) + 
+                (chosenPiece.directions[1] ? 1 : 0) + 
+                (chosenPiece.directions[2] ? 1 : 0) + 
+                (chosenPiece.directions[3] ? 1 : 0) == 3)
             {
                 //Detected dead ends. Item spawn code can go here?
             }
-            visitedMazePieces.Remove(currentPiece); //Removing it because it can no longer be used
-            return currentPiece;
+            visitedMazePieces.Remove(chosenPiece); //Removing it because it can no longer be used
+            return chosenPiece;
         }
         else
         {
             //finds the index so we can find adjacent
-            int idx = mazePieces.FindIndex(x => x == currentPiece);
+            int idx = mazePieces.FindIndex(x => x == chosenPiece);
             int direction = validDirections[Random.Range(0, validDirections.Count)];
             switch (direction)
             {
@@ -102,18 +101,17 @@ public class MazeGenerator : MonoBehaviour
 
                     if (idx - 1 >= 0)
                     {
-                        MazePiece searchPiece = mazePieces[idx - 1];
-                        if (searchPiece.position.z == currentPiece.position.z && notVistiedMazePieces.Contains(searchPiece))
+                        if (mazePieces[idx - 1].position.z == chosenPiece.position.z && notVistiedMazePieces.Contains(mazePieces[idx - 1]))
                         {
-                            currentPiece.directions[direction] = false;
-                            searchPiece.directions[2] = false;
-                            visitedMazePieces.Add(searchPiece);
-                            notVistiedMazePieces.Remove(searchPiece);
+                            chosenPiece.directions[direction] = false;
+                            mazePieces[idx - 1].directions[2] = false;
+                            visitedMazePieces.Add(mazePieces[idx - 1]);
+                            notVistiedMazePieces.Remove(mazePieces[idx - 1]);
                         }
                         else
                         {
                             validDirections.Remove(direction);
-                            return CheckDirections(currentPiece, validDirections);
+                            return CheckDirections(chosenPiece, validDirections);
                         }
                     }
                     break;
@@ -121,18 +119,17 @@ public class MazeGenerator : MonoBehaviour
                 case 1: //up
                     if (idx + mazeWidth <= ((mazeWidth * mazeHeight) - 1))
                     {
-                        MazePiece searchPiece = mazePieces[idx + mazeWidth];
-                        if (notVistiedMazePieces.Contains(searchPiece))
+                        if (notVistiedMazePieces.Contains(mazePieces[idx + mazeWidth]))
                         {
-                            currentPiece.directions[direction] = false;
-                            searchPiece.directions[3] = false;
-                            visitedMazePieces.Add(searchPiece);
-                            notVistiedMazePieces.Remove(searchPiece);
+                            chosenPiece.directions[direction] = false;
+                            mazePieces[idx + mazeWidth].directions[3] = false;
+                            visitedMazePieces.Add(mazePieces[idx + mazeWidth]);
+                            notVistiedMazePieces.Remove(mazePieces[idx + mazeWidth]);
                         }
                         else
                         {
                             validDirections.Remove(direction);
-                            return CheckDirections(currentPiece, validDirections);
+                            return CheckDirections(chosenPiece, validDirections);
                         }
                     }
                     break;
@@ -140,18 +137,17 @@ public class MazeGenerator : MonoBehaviour
                 case 2: //right
                     if (idx + 1 <= ((mazeWidth * mazeHeight) - 1))
                     {
-                        MazePiece searchPiece = mazePieces[idx + 1];
-                        if ( searchPiece.position.z == currentPiece.position.z && notVistiedMazePieces.Contains(searchPiece))
+                        if (mazePieces[idx + 1].position.z == chosenPiece.position.z && notVistiedMazePieces.Contains(mazePieces[idx + 1]))
                         {
-                            currentPiece.directions[direction] = false;
-                            searchPiece.directions[1] = false;
-                            visitedMazePieces.Add(searchPiece);
-                            notVistiedMazePieces.Remove(searchPiece);
+                            chosenPiece.directions[direction] = false;
+                            mazePieces[idx + 1].directions[1] = false;
+                            visitedMazePieces.Add(mazePieces[idx + 1]);
+                            notVistiedMazePieces.Remove(mazePieces[idx + 1]);
                         }
                         else
                         {
                             validDirections.Remove(direction);
-                            return CheckDirections(currentPiece, validDirections);
+                            return CheckDirections(chosenPiece, validDirections);
                         }
                     }
                     break;
@@ -159,18 +155,17 @@ public class MazeGenerator : MonoBehaviour
                 case 3: //down
                     if (idx - mazeWidth >= 0)
                     {
-                        MazePiece searchPiece = mazePieces[idx - mazeWidth];
-                        if (notVistiedMazePieces.Contains(searchPiece))
+                        if (notVistiedMazePieces.Contains(mazePieces[idx - mazeWidth]))
                         {
-                            currentPiece.directions[direction] = false;
-                            searchPiece.directions[1] = false;
-                            visitedMazePieces.Add(searchPiece);
-                            notVistiedMazePieces.Remove(searchPiece);
+                            chosenPiece.directions[direction] = false;
+                            mazePieces[idx - mazeWidth].directions[1] = false;
+                            visitedMazePieces.Add(mazePieces[idx - mazeWidth]);
+                            notVistiedMazePieces.Remove(mazePieces[idx - mazeWidth]);
                         }
                         else
                         {
                             validDirections.Remove(direction);
-                            return CheckDirections(currentPiece, validDirections);
+                            return CheckDirections(chosenPiece, validDirections);
                         }
                     }
                     break;
@@ -178,7 +173,7 @@ public class MazeGenerator : MonoBehaviour
                 default:
                     break;
             }
-            return currentPiece;
+            return chosenPiece;
         }
     }
 
