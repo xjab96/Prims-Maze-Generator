@@ -22,7 +22,8 @@ public class MazeGenerator : MonoBehaviour
     public float mazePieceHeight = 5;
 
     private List<MazePiece> notVisitedMazePieces = new List<MazePiece>();
-    private List<MazePiece> visitedMazePieces = new List<MazePiece>();
+    private List<MazePiece> openList = new List<MazePiece>();
+    private List<MazePiece> closedList = new List<MazePiece>();
 
     public GameObject wallPrefab;
 
@@ -45,16 +46,16 @@ public class MazeGenerator : MonoBehaviour
 
     void BuildPaths()
     {
-        if (visitedMazePieces.Count == 0)
+        if (openList.Count == 0)
         {
             var randomPiece = notVisitedMazePieces[Random.Range(0, notVisitedMazePieces.Count)];
-            visitedMazePieces.Add(randomPiece);
+            openList.Add(randomPiece);
             notVisitedMazePieces.Remove(randomPiece);
         }
-        while (notVisitedMazePieces.Count > 0)
+        while (openList.Count > 0)
         {
             //Pick a random room thats been visited -- 
-            MazePiece randomPiece = visitedMazePieces[Random.Range(0, visitedMazePieces.Count)];
+            MazePiece randomPiece = openList[Random.Range(0, openList.Count)];
 
             //Remove random infinity possibility by setting up a list of directions
             List<int> validDirections = new List<int>();
@@ -77,7 +78,8 @@ public class MazeGenerator : MonoBehaviour
             {
                 //Detected dead ends. Item spawn code can go here?
             }
-            //visitedMazePieces.Remove(chosenPiece); //Removing it because it can no longer be used
+            closedList.Add(chosenPiece);
+            openList.Remove(chosenPiece);
             return chosenPiece;
         }
         else
@@ -93,7 +95,7 @@ public class MazeGenerator : MonoBehaviour
                         chosenPiece.directions[direction] = false;
 
                         var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x - 1, chosenPiece.position.y, chosenPiece.position.z));
-                        visitedMazePieces.Add(directionPiece);
+                        openList.Add(directionPiece);
                         notVisitedMazePieces.Remove(directionPiece);
                         directionPiece.directions[2] = false;
                     }
@@ -111,7 +113,7 @@ public class MazeGenerator : MonoBehaviour
                         chosenPiece.directions[direction] = false;
 
                         var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x, chosenPiece.position.y, chosenPiece.position.z + 1));
-                        visitedMazePieces.Add(directionPiece);
+                        openList.Add(directionPiece);
                         notVisitedMazePieces.Remove(directionPiece);
                         directionPiece.directions[3] = false;
                     }
@@ -129,7 +131,7 @@ public class MazeGenerator : MonoBehaviour
                         chosenPiece.directions[direction] = false;
 
                         var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x + 1, chosenPiece.position.y, chosenPiece.position.z));
-                        visitedMazePieces.Add(directionPiece);
+                        openList.Add(directionPiece);
                         notVisitedMazePieces.Remove(directionPiece);
                         directionPiece.directions[0] = false;
                     }
@@ -147,7 +149,7 @@ public class MazeGenerator : MonoBehaviour
                         chosenPiece.directions[direction] = false;
 
                         var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x, chosenPiece.position.y, chosenPiece.position.z - 1));
-                        visitedMazePieces.Add(directionPiece);
+                        openList.Add(directionPiece);
                         notVisitedMazePieces.Remove(directionPiece);
                         directionPiece.directions[1] = false;
                     }
@@ -169,7 +171,7 @@ public class MazeGenerator : MonoBehaviour
 
         Quaternion wallRotation = new Quaternion();
 
-        for (int i = 0; i < visitedMazePieces.Count; i++)
+        for (int i = 0; i < closedList.Count; i++)
         {
             MazePiece curr = new MazePiece(new Vector3(0, 0), false, false, false, false);
 
@@ -182,12 +184,12 @@ public class MazeGenerator : MonoBehaviour
             //{
             //    mazePieces[i].directions[0] = false;
             //}
-            curr = visitedMazePieces[i];
+            curr = closedList[i];
             curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * mazePieceHeight));
 
             for (int directionIdx = 0; directionIdx < 4; directionIdx++)
             {
-                if (visitedMazePieces[i].directions[directionIdx] == true)
+                if (closedList[i].directions[directionIdx] == true)
                 {
                     switch (directionIdx)
                     {
