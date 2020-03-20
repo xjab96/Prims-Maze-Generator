@@ -169,25 +169,34 @@ public class MazeGenerator : MonoBehaviour
     {
         float widthOffset = mazePieceWidth / 2;
         float heightOffset = mazePieceHeight / 2;
-
         Quaternion wallRotation = new Quaternion();
 
         for (int i = 0; i < closedList.Count; i++)
         {
-            MazePiece curr = new MazePiece(new Vector3(0, 0), false, false, false, false);
+            MazePiece currentPiece = closedList[i];
 
             //If it has a wall above it or to the side of it then don't place a wall
-            //if (i + mazeWidth <= ((mazeWidth * mazeHeight) - 1) && mazePieces[i + mazeWidth].directions[3])
-            //{
-            //    mazePieces[i].directions[1] = false;
-            //}
-            //if (i - 1 >= 0 && mazePieces[i].position.z == mazePieces[i - 1].position.z && mazePieces[i - 1].directions[2])
-            //{
-            //    mazePieces[i].directions[0] = false;
-            //}
-            curr = closedList[i];
-            curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * mazePieceHeight));
-            bool[] directions = new bool[4] { curr.left, curr.up, curr.right, curr.down };
+            if ((currentPiece.position.z < mazeHeight - 1) && currentPiece.up == true)
+            {
+                if (closedList.Exists(piece => piece.position == new Vector3(currentPiece.position.x, currentPiece.position.y, currentPiece.position.z + 1)))
+                {
+                    closedList.Find(piece => piece.position == new Vector3(currentPiece.position.x, currentPiece.position.y, currentPiece.position.z + 1)).down = false;
+                }
+            }
+            if (currentPiece.position.x > 0 && currentPiece.left == true)
+            {
+                if (closedList.Exists(piece => piece.position == new Vector3(currentPiece.position.x - 1, currentPiece.position.y, currentPiece.position.z)))
+                {
+                    closedList.Find(piece => piece.position == new Vector3(currentPiece.position.x - 1, currentPiece.position.y, currentPiece.position.z)).right = false;
+                }
+              
+            }
+
+
+            //Allows the piece to be offset correctly
+            currentPiece.position = new Vector3(((currentPiece.position.x + 1) * mazePieceWidth), 0, ((currentPiece.position.z + 1) * mazePieceHeight));
+
+            bool[] directions = new bool[4] { currentPiece.left, currentPiece.up, currentPiece.right, currentPiece.down };
 
             for (int directionIdx = 0; directionIdx < 4; directionIdx++)
             {
@@ -197,22 +206,22 @@ public class MazeGenerator : MonoBehaviour
                     {
                         case 0://left
                             wallRotation.eulerAngles = new Vector3(0, 0, 0);
-                            Instantiate(wallPrefab, new Vector3(curr.position.x - widthOffset, curr.position.y, curr.position.z), wallRotation);
+                            Instantiate(wallPrefab, new Vector3(currentPiece.position.x - widthOffset, currentPiece.position.y, currentPiece.position.z), wallRotation);
                             break;
 
                         case 1://up
                             wallRotation.eulerAngles = new Vector3(0, 90, 0);
-                            Instantiate(wallPrefab, new Vector3(curr.position.x, curr.position.y, curr.position.z + heightOffset), wallRotation);
+                            Instantiate(wallPrefab, new Vector3(currentPiece.position.x, currentPiece.position.y, currentPiece.position.z + heightOffset), wallRotation);
                             break;
 
                         case 2://right
                             wallRotation.eulerAngles = new Vector3(0, 0, 0);
-                            Instantiate(wallPrefab, new Vector3(curr.position.x + widthOffset, curr.position.y, curr.position.z), wallRotation);
+                            Instantiate(wallPrefab, new Vector3(currentPiece.position.x + widthOffset, currentPiece.position.y, currentPiece.position.z), wallRotation);
                             break;
 
                         case 3://down
                             wallRotation.eulerAngles = new Vector3(0, 90, 0);
-                            Instantiate(wallPrefab, new Vector3(curr.position.x, curr.position.y, curr.position.z - heightOffset), wallRotation);
+                            Instantiate(wallPrefab, new Vector3(currentPiece.position.x, currentPiece.position.y, currentPiece.position.z - heightOffset), wallRotation);
                             break;
 
                         default:
