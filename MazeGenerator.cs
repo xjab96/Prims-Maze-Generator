@@ -21,10 +21,7 @@ public class MazeGenerator : MonoBehaviour
     public float mazePieceWidth = 5;
     public float mazePieceHeight = 5;
 
-    private List<MazePiece> mazePieces = new List<MazePiece>();
-
-    //Lists of indexes. They store the value of the index 
-    private List<MazePiece> notVistiedMazePieces;
+    private List<MazePiece> notVisitedMazePieces = new List<MazePiece>();
     private List<MazePiece> visitedMazePieces = new List<MazePiece>();
 
     public GameObject wallPrefab;
@@ -37,32 +34,28 @@ public class MazeGenerator : MonoBehaviour
     }
     void InitializeEmptyMaze()
     {
-        for (int i = 0; i < mazeHeight; i++)
+        for (int z = 0; z < mazeHeight; z++)
         {
-            for (int j = 0; j < mazeWidth; j++)
+            for (int x = 0; x < mazeWidth; x++)
             {
-                mazePieces.Add(new MazePiece(new Vector3(j, 0, i), true, true, true, true));
+                notVisitedMazePieces.Add(new MazePiece(new Vector3(x, 0, z), true, true, true, true));
             }
         }
-        notVistiedMazePieces = mazePieces;
     }
-
-    //just pass the maze piece to the function directly
-    //return both maze pieces after checking direction
 
     void BuildPaths()
     {
         if (visitedMazePieces.Count == 0)
         {
-            MazePiece randomPiece = notVistiedMazePieces[Random.Range(0, notVistiedMazePieces.Count)];
+            var randomPiece = notVisitedMazePieces[Random.Range(0, notVisitedMazePieces.Count)];
             visitedMazePieces.Add(randomPiece);
-            notVistiedMazePieces.Remove(randomPiece);
+            notVisitedMazePieces.Remove(randomPiece);
         }
-        while (notVistiedMazePieces.Count > 0)
+        while (notVisitedMazePieces.Count > 0)
         {
-            Debug.Log(notVistiedMazePieces.Count);
             //Pick a random room thats been visited -- 
-            MazePiece randomPiece = notVistiedMazePieces[Random.Range(0, visitedMazePieces.Count)];
+            MazePiece randomPiece = visitedMazePieces[Random.Range(0, visitedMazePieces.Count)];
+
             //Remove random infinity possibility by setting up a list of directions
             List<int> validDirections = new List<int>();
             for (int i = 0; i < 4; i++)
@@ -71,12 +64,10 @@ public class MazeGenerator : MonoBehaviour
             }
             CheckDirections(randomPiece, validDirections);
         }
-        visitedMazePieces.Clear();
     }
 
     private MazePiece CheckDirections(MazePiece chosenPiece, List<int> validDirections)
     {
-
         if (validDirections.Count == 0)
         {
             if ((chosenPiece.directions[0] ? 1 : 0) + 
@@ -86,91 +77,85 @@ public class MazeGenerator : MonoBehaviour
             {
                 //Detected dead ends. Item spawn code can go here?
             }
-            visitedMazePieces.Remove(chosenPiece); //Removing it because it can no longer be used
+            //visitedMazePieces.Remove(chosenPiece); //Removing it because it can no longer be used
             return chosenPiece;
         }
         else
         {
             //finds the index so we can find adjacent
-            int idx = mazePieces.FindIndex(x => x == chosenPiece);
             int direction = validDirections[Random.Range(0, validDirections.Count)];
             switch (direction)
             {
-                //switch detects if idx is valid, then checks if its on the same z axis(same row) then makes sure the piece hasnt already been visited
                 case 0: //left
-
-                    if (idx - 1 >= 0)
+                    if (chosenPiece.position.x > 0 &&
+                        notVisitedMazePieces.Exists(piece => piece.position == new Vector3(chosenPiece.position.x - 1, chosenPiece.position.y, chosenPiece.position.z)))
                     {
-                        if (mazePieces[idx - 1].position.z == chosenPiece.position.z && notVistiedMazePieces.Contains(mazePieces[idx - 1]))
-                        {
-                            chosenPiece.directions[direction] = false;
-                            mazePieces[idx - 1].directions[2] = false;
-                            visitedMazePieces.Add(mazePieces[idx - 1]);
-                            notVistiedMazePieces.Remove(mazePieces[idx - 1]);
-                        }
-                        else
-                        {
-                            validDirections.Remove(direction);
-                            return CheckDirections(chosenPiece, validDirections);
-                        }
+                        chosenPiece.directions[direction] = false;
+
+                        var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x - 1, chosenPiece.position.y, chosenPiece.position.z));
+                        visitedMazePieces.Add(directionPiece);
+                        notVisitedMazePieces.Remove(directionPiece);
+                        directionPiece.directions[2] = false;
+                    }
+                    else
+                    {
+                        validDirections.Remove(direction);
+                        return CheckDirections(chosenPiece, validDirections);
                     }
                     break;
 
                 case 1: //up
-                    if (idx + mazeWidth <= ((mazeWidth * mazeHeight) - 1))
+                    if ((chosenPiece.position.z < mazeHeight - 1) &&
+                        notVisitedMazePieces.Exists(piece => piece.position == new Vector3(chosenPiece.position.x, chosenPiece.position.y, chosenPiece.position.z + 1)))
+                    { 
+                        chosenPiece.directions[direction] = false;
+
+                        var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x, chosenPiece.position.y, chosenPiece.position.z + 1));
+                        visitedMazePieces.Add(directionPiece);
+                        notVisitedMazePieces.Remove(directionPiece);
+                        directionPiece.directions[3] = false;
+                    }
+                    else
                     {
-                        if (notVistiedMazePieces.Contains(mazePieces[idx + mazeWidth]))
-                        {
-                            chosenPiece.directions[direction] = false;
-                            mazePieces[idx + mazeWidth].directions[3] = false;
-                            visitedMazePieces.Add(mazePieces[idx + mazeWidth]);
-                            notVistiedMazePieces.Remove(mazePieces[idx + mazeWidth]);
-                        }
-                        else
-                        {
-                            validDirections.Remove(direction);
-                            return CheckDirections(chosenPiece, validDirections);
-                        }
+                        validDirections.Remove(direction);
+                        return CheckDirections(chosenPiece, validDirections);
                     }
                     break;
 
                 case 2: //right
-                    if (idx + 1 <= ((mazeWidth * mazeHeight) - 1))
+                    if ((chosenPiece.position.x < mazeWidth - 1) &&
+                        notVisitedMazePieces.Exists(piece => piece.position == new Vector3(chosenPiece.position.x + 1, chosenPiece.position.y, chosenPiece.position.z)))
                     {
-                        if (mazePieces[idx + 1].position.z == chosenPiece.position.z && notVistiedMazePieces.Contains(mazePieces[idx + 1]))
-                        {
-                            chosenPiece.directions[direction] = false;
-                            mazePieces[idx + 1].directions[1] = false;
-                            visitedMazePieces.Add(mazePieces[idx + 1]);
-                            notVistiedMazePieces.Remove(mazePieces[idx + 1]);
-                        }
-                        else
-                        {
-                            validDirections.Remove(direction);
-                            return CheckDirections(chosenPiece, validDirections);
-                        }
+                        chosenPiece.directions[direction] = false;
+
+                        var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x + 1, chosenPiece.position.y, chosenPiece.position.z));
+                        visitedMazePieces.Add(directionPiece);
+                        notVisitedMazePieces.Remove(directionPiece);
+                        directionPiece.directions[0] = false;
+                    }
+                    else
+                    {
+                        validDirections.Remove(direction);
+                        return CheckDirections(chosenPiece, validDirections);
                     }
                     break;
 
                 case 3: //down
-                    if (idx - mazeWidth >= 0)
+                    if ((chosenPiece.position.x > 0) &&
+                        notVisitedMazePieces.Exists(piece => piece.position == new Vector3(chosenPiece.position.x, chosenPiece.position.y, chosenPiece.position.z - 1)))
                     {
-                        if (notVistiedMazePieces.Contains(mazePieces[idx - mazeWidth]))
-                        {
-                            chosenPiece.directions[direction] = false;
-                            mazePieces[idx - mazeWidth].directions[1] = false;
-                            visitedMazePieces.Add(mazePieces[idx - mazeWidth]);
-                            notVistiedMazePieces.Remove(mazePieces[idx - mazeWidth]);
-                        }
-                        else
-                        {
-                            validDirections.Remove(direction);
-                            return CheckDirections(chosenPiece, validDirections);
-                        }
-                    }
-                    break;
+                        chosenPiece.directions[direction] = false;
 
-                default:
+                        var directionPiece = notVisitedMazePieces.Find(piece => piece.position == new Vector3(chosenPiece.position.x, chosenPiece.position.y, chosenPiece.position.z - 1));
+                        visitedMazePieces.Add(directionPiece);
+                        notVisitedMazePieces.Remove(directionPiece);
+                        directionPiece.directions[1] = false;
+                    }
+                    else
+                    {
+                        validDirections.Remove(direction);
+                        return CheckDirections(chosenPiece, validDirections);
+                    }
                     break;
             }
             return chosenPiece;
@@ -184,7 +169,7 @@ public class MazeGenerator : MonoBehaviour
 
         Quaternion wallRotation = new Quaternion();
 
-        for (int i = 0; i < mazePieces.Count; i++)
+        for (int i = 0; i < visitedMazePieces.Count; i++)
         {
             MazePiece curr = new MazePiece(new Vector3(0, 0), false, false, false, false);
 
@@ -197,12 +182,12 @@ public class MazeGenerator : MonoBehaviour
             //{
             //    mazePieces[i].directions[0] = false;
             //}
-            curr = mazePieces[i];
+            curr = visitedMazePieces[i];
             curr.position = new Vector3(((curr.position.x + 1) * mazePieceWidth), 0, ((curr.position.z + 1) * mazePieceHeight));
 
             for (int directionIdx = 0; directionIdx < 4; directionIdx++)
             {
-                if (mazePieces[i].directions[directionIdx] == true)
+                if (visitedMazePieces[i].directions[directionIdx] == true)
                 {
                     switch (directionIdx)
                     {
