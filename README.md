@@ -1,13 +1,16 @@
-# Prims Maze Generator
- Uses Prims alogorithm to generate a random maze.
+# Prims Maze Generator 
+
    ![alt text](https://i.imgur.com/XDfMsTe.png "Maze")
+   
 # Explanation
  This article explains it extremely well:
  https://en.wikipedia.org/wiki/Prim%27s_algorithm
- </break>I saw the algorithm one day and felt like coding it.
+ 
+ I saw the algorithm one day and felt like coding it. This by far isnt the best implementation. I shall continue to work on this and improve it however.
   
 # Current implementation
   The current implementation isn't ideal for this type of algorithm. This is because short paths are fairly common and can end up fairly obvious see below. To reduce this obviousness it would be better to add space between the walls to some extent.
+  
   ![alt text](https://i.imgur.com/JaMvlSQ.png "Maze short tunnel problem")
   
 # Reducing random
