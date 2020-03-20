@@ -67,7 +67,7 @@ public class MazeGenerator : MonoBehaviour
         }
     }
 
-    private MazePiece CheckDirections(MazePiece chosenPiece, List<int> validDirections)
+    private void CheckDirections(MazePiece chosenPiece, List<int> validDirections)
     {
         if (validDirections.Count == 0)
         {
@@ -80,7 +80,7 @@ public class MazeGenerator : MonoBehaviour
             }
             closedList.Add(chosenPiece);
             openList.Remove(chosenPiece);
-            return chosenPiece;
+            //return chosenPiece;
         }
         else
         {
@@ -102,7 +102,7 @@ public class MazeGenerator : MonoBehaviour
                     else
                     {
                         validDirections.Remove(direction);
-                        return CheckDirections(chosenPiece, validDirections);
+                        CheckDirections(chosenPiece, validDirections);
                     }
                     break;
 
@@ -120,7 +120,7 @@ public class MazeGenerator : MonoBehaviour
                     else
                     {
                         validDirections.Remove(direction);
-                        return CheckDirections(chosenPiece, validDirections);
+                        CheckDirections(chosenPiece, validDirections);
                     }
                     break;
 
@@ -138,7 +138,7 @@ public class MazeGenerator : MonoBehaviour
                     else
                     {
                         validDirections.Remove(direction);
-                        return CheckDirections(chosenPiece, validDirections);
+                        CheckDirections(chosenPiece, validDirections);
                     }
                     break;
 
@@ -156,11 +156,10 @@ public class MazeGenerator : MonoBehaviour
                     else
                     {
                         validDirections.Remove(direction);
-                        return CheckDirections(chosenPiece, validDirections);
+                        CheckDirections(chosenPiece, validDirections);
                     }
                     break;
             }
-            return chosenPiece;
         }
     }
 
