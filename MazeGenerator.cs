@@ -192,7 +192,6 @@ public class MazeGenerator : MonoBehaviour
               
             }
 
-
             //Allows the piece to be offset correctly
             currentPiece.position = new Vector3(((currentPiece.position.x + 1) * mazePieceWidth), 0, ((currentPiece.position.z + 1) * mazePieceHeight));
 
