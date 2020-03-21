@@ -1,22 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class MazePiece
-{
-    public Vector3 position;
-    public bool left, up, right, down;
-    public MazePiece(Vector3 position, bool left, bool up, bool right, bool down)
-    {
-        this.left = left;
-        this.up = up;
-        this.right = right;
-        this.down = down;
-        this.position = position;
-    }
-}
+
 
 public class MazeGenerator : MonoBehaviour
 {
+    public GameObject wallPrefab;
+    private class MazePiece
+    {
+        public Vector3 position;
+        public bool left, up, right, down;
+        public MazePiece(Vector3 position, bool left, bool up, bool right, bool down)
+        {
+            this.left = left;
+            this.up = up;
+            this.right = right;
+            this.down = down;
+            this.position = position;
+        }
+    }
     public int mazeWidth = 10;
     public int mazeHeight = 10;
 
@@ -27,7 +29,7 @@ public class MazeGenerator : MonoBehaviour
     private List<MazePiece> openList = new List<MazePiece>();
     private List<MazePiece> closedList = new List<MazePiece>();
 
-    public GameObject wallPrefab;
+
 
     private void Start()
     {
