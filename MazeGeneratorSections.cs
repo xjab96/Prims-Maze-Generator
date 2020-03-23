@@ -43,12 +43,12 @@ public class MazeGeneratorSections : MonoBehaviour
             }
         }
         //Generate initial maze grid
-        for (int z = 1; z < mazeGridDimensions.y; z++)
+        for (int z = 1; z <= mazeGridDimensions.y; z++)
         {
-            for (int x = 1; x < mazeGridDimensions.x; x++)
+            for (int x = 1; x <= mazeGridDimensions.x; x++)
             {
                 notVisitedMazePieces.Add(new MazePiece(new Vector2(x, z)));
-                mazeGrid[(int)Mathf.Clamp((x - 1) / 3, 0, Mathf.Infinity), (int)Mathf.Clamp((z - 1) / 3, 0, Mathf.Infinity)].Add(notVisitedMazePieces[notVisitedMazePieces.Count - 1]);
+                mazeGrid[(int)Mathf.Clamp((x - 1) / mazeSubGridDimensions.x, 0, Mathf.Infinity), (int)Mathf.Clamp((z - 1) / mazeSubGridDimensions.y, 0, Mathf.Infinity)].Add(notVisitedMazePieces[notVisitedMazePieces.Count - 1]);
             }
         }
     }
@@ -58,9 +58,10 @@ public class MazeGeneratorSections : MonoBehaviour
         {
             for(int x = 0; x < mazeGrid.GetLength(0); x++)
             {
-                float offsetX = (x + 1) * mazePieceSize.x;
-                float offsetZ = (z + 1) * mazePieceSize.y;
-                Instantiate(mazePiecePrefab, new Vector3(offsetX, 0, offsetZ), new Quaternion());
+                for(int i = 0; i < mazeGrid[x,z].Count; i++)
+                {
+                    Instantiate(mazePiecePrefab, new Vector3(mazeGrid[x,z][i].position.x * mazePieceSize.x, 0, mazeGrid[x, z][i].position.y * mazePieceSize.y), new Quaternion());
+                }
             }
         }
     }
