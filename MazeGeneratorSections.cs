@@ -5,7 +5,9 @@ using UnityEngine;
 public class MazeGeneratorSections : MonoBehaviour
 {
     public GameObject mazePiecePrefab;
-    public Vector2Int mazeDimensions = new Vector2Int(10, 10);
+    public Vector2 mazePieceSize = new Vector2(3, 3);
+
+    public Vector2Int mazeDimensions = new Vector2Int(9, 9);
     public Vector2Int mazeSubGridDimensions = new Vector2Int(3, 3);
     private Vector2Int mazeGridDimensions;
 
@@ -23,46 +25,43 @@ public class MazeGeneratorSections : MonoBehaviour
             this.position = position;
         }
     }
-    /// <summary>
-    /// Create a new empty maze in the same way as before but use bools. Then create a new maze in each of those squares
-    /// Create the whole maze then seperate into the squares
-    /// 
-    /// 
-    /// 
-    /// 
-    /// </summary>
-
     void Start()
     {
         mazeGridDimensions = new Vector2Int(mazeDimensions.x * mazeSubGridDimensions.x, mazeDimensions.y * mazeSubGridDimensions.y);
         mazeGrid = new List<MazePiece>[mazeDimensions.x, mazeDimensions.y];
         
         GenerateEmptyMaze();
+        InstantiateMaze();
     }
     private void GenerateEmptyMaze()
     {
-        int pieceX = -1;
-        int pieceZ = -1;
-        //Generate initial maze grid
-        for (int z = 0; z < mazeGridDimensions.y - 1; z++)
+        for (int z = 0; z < mazeDimensions.y; z++)
         {
-            for (int x = 0; x < mazeGridDimensions.x - 1; x++)
+            for (int x = 0; x < mazeDimensions.x; x++)
             {
-                if(pieceX != (x + 1) / mazeSubGridDimensions.x || pieceZ != (z + 1) / mazeSubGridDimensions.y)
-                {
-                    Debug.Log("hit");
-                    pieceX = (x + 1) / mazeSubGridDimensions.x;
-                    pieceZ = (z + 1) / mazeSubGridDimensions.y;
-                    mazeGrid[pieceX, pieceZ] = new List<MazePiece>();
-                }
-
-                notVisitedMazePieces.Add(new MazePiece(new Vector2(x, z)));
-                mazeGrid[pieceX, pieceZ].Add(notVisitedMazePieces[notVisitedMazePieces.Count - 1]);
-
-                Debug.Log(mazeGrid[pieceX, pieceZ][mazeGrid[pieceX, pieceZ].Count - 1].position);
+                mazeGrid[x, z] = new List<MazePiece>();
             }
         }
-
-
+        //Generate initial maze grid
+        for (int z = 1; z < mazeGridDimensions.y; z++)
+        {
+            for (int x = 1; x < mazeGridDimensions.x; x++)
+            {
+                notVisitedMazePieces.Add(new MazePiece(new Vector2(x, z)));
+                mazeGrid[(int)Mathf.Clamp((x - 1) / 3, 0, Mathf.Infinity), (int)Mathf.Clamp((z - 1) / 3, 0, Mathf.Infinity)].Add(notVisitedMazePieces[notVisitedMazePieces.Count - 1]);
+            }
+        }
+    }
+    private void InstantiateMaze()
+    {
+        for (int z = 0; z < mazeGrid.GetLength(1); z++)
+        {
+            for(int x = 0; x < mazeGrid.GetLength(0); x++)
+            {
+                float offsetX = (x + 1) * mazePieceSize.x;
+                float offsetZ = (z + 1) * mazePieceSize.y;
+                Instantiate(mazePiecePrefab, new Vector3(offsetX, 0, offsetZ), new Quaternion());
+            }
+        }
     }
 }
